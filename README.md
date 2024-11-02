@@ -1,6 +1,6 @@
 # mcfunction-execute-formatter README
 
-Formats your long /execute lines into readable, neat, and clean multi-line command.
+Formats your long /execute commands into a readable format.
 
 ## Extension Settings
 
