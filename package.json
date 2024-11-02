@@ -4,6 +4,10 @@
   "description": "Formats your long /execute commands into a readable format.",
   "version": "0.0.1",
   "keywords": ["datapacks","mcfunction","minecraft","minecraft java","minecraft commands"],
+  "publisher": "trplnr",
+  "author": {
+    "name": "Trplnr"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
