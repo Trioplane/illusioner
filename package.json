@@ -2,7 +2,7 @@
   "name": "mcfunction-execute-formatter",
   "displayName": "Illusioner",
   "description": "Formats your long /execute commands into a readable format.",
-  "version": "0.0.2",
+  "version": "0.0.2a",
   "keywords": ["datapacks","mcfunction","minecraft","minecraft java","minecraft commands"],
   "publisher": "trplnr",
   "license": "MIT",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Trioplane/illusioner/git"
+    "url": "https://github.com/Trioplane/illusioner.git"
   },
   "author": {
     "name": "Trplnr"
