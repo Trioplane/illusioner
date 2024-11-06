@@ -1,6 +1,6 @@
 {
   "name": "mcfunction-execute-formatter",
-  "displayName": "MCFunction Execute Formatter",
+  "displayName": "Illusioner",
   "description": "Formats your long /execute commands into a readable format.",
   "version": "0.0.1",
   "keywords": ["datapacks","mcfunction","minecraft","minecraft java","minecraft commands"],
