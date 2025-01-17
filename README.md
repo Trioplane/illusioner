@@ -1,4 +1,4 @@
-# mcfunction-execute-formatter
+# Illusioner
 
 Formats your long /execute commands into a readable format.
 
@@ -13,7 +13,7 @@ I will rewrite this a lot probably.
 
 This extension contributes the following setting:
 
-* `mcfunction-execute-formatter.indentSize`: Sets how long the indent for the formatting is. Measured in spaces.
+* `illusioner.indentSize`: Sets how long the indent for the formatting is. Measured in spaces.
 
 ## Known Issues
 
