@@ -1,7 +1,7 @@
 import * as vsc from 'vscode';
-const spyglassCore = require("@spyglassmc/core");
-const spyglassJe = require("@spyglassmc/java-edition");
-const spyglassMcf = require("@spyglassmc/mcfunction");
+import * as spyglassCore from "@spyglassmc/core";
+import * as spyglassJe from "@spyglassmc/java-edition";
+import * as spyglassMcf from "@spyglassmc/mcfunction";
 import { getPatch } from '@spyglassmc/java-edition/lib/mcfunction/tree/patch.js';
 import { MCFunctionFormatter } from './formatter.js';
 import { ReleaseVersion } from '@spyglassmc/java-edition/lib/dependency/common.js';
@@ -38,5 +38,6 @@ export async function activate(context: vsc.ExtensionContext) {
 		vsc.languages.registerDocumentFormattingEditProvider(
 			{scheme:"file", language:"mcfunction"},
 			new MCFunctionFormatter(functionParser, parserContext)
-e Formatter activated.");
+		)
+	);
 }

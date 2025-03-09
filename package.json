@@ -3,7 +3,13 @@
   "displayName": "Illusioner",
   "description": "Formats your long commands",
   "version": "0.0.3",
-  "keywords": ["datapacks", "mcfunction", "minecraft", "minecraft java", "minecraft commands"],
+  "keywords": [
+    "datapacks",
+    "mcfunction",
+    "minecraft",
+    "minecraft java",
+    "minecraft commands"
+  ],
   "publisher": "trplnr",
   "license": "MIT",
   "homepage": "https://github.com/Trioplane/illusioner",
@@ -27,7 +33,7 @@
   "activationEvents": [
     "onLanguage:mcfunction"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/main.js",
   "contributes": {
     "configuration": [
       {
@@ -55,21 +61,22 @@
   },
   "preview": true,
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test-compile": "tsc -p ./"
+},
   "devDependencies": {
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
     "@types/vscode": "^1.96.0",
+    "@types/whatwg-url": "^13.0.0",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.7.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "esbuild": "0.25.0",
     "eslint": "^9.13.0",
     "typescript": "^5.6.3"
   },
