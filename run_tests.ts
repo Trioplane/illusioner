@@ -48,7 +48,7 @@ function diff(string1: string, string2: string): Record<number, {string1: string
     return diffs
 }
 
-function formatDiff(string1: string, string2: string): string {
+function formatDiff(string1: string, string2: string, header1 = "String 1", header2= "String 2"): string {
     const raw = diff(string1, string2)
     let formatted = "";
     let maxLength = 0
@@ -58,8 +58,8 @@ function formatDiff(string1: string, string2: string): string {
         if (length > maxLength) maxLength = length
     }
     
-    const str1Header = "String 1"
-    const str2Header = "String 2"
+    const str1Header = header1
+    const str2Header = header2
     const linesHeader = "Lines"
 
     formatted += `${str1Header}${" ".repeat(maxLength - str1Header.length)}  |`
@@ -122,7 +122,7 @@ for (let i = 0; i < testFiles.length; i++) {
         const resultAst = JSON.stringify(result, null, 2)
         if (resultAst !== correctAst) {
             console.log(`🔴 ${indexStr} ${loadingBar} "${MCFunctionFilePath}" failed (ast mismatch)\n`)
-            console.log(formatDiff(resultAst,correctAst))
+            console.log(formatDiff(resultAst,correctAst,"Result AST", "Correct AST"))
             continue
         }
     }
