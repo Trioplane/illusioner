@@ -20,7 +20,7 @@ export interface Token {
 }
 
 function isSkippable(str: string): boolean {
-    return /[ \n\t]/.test(str)
+    return /[ \n\t\r]/.test(str)
 }
 
 function token(value = "", type: TokenType) {
