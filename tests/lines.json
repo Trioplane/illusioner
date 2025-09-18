@@ -1,0 +1,63 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        {
+          "kind": "Argument",
+          "parser": "minecraft:message",
+          "value": "hello world"
+        }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        {
+          "kind": "Argument",
+          "parser": "minecraft:message",
+          "value": "foo bar"
+        }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        {
+          "kind": "Argument",
+          "parser": "minecraft:message",
+          "value": "faz balls"
+        }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        {
+          "kind": "Argument",
+          "parser": "minecraft:message",
+          "value": "oo a space"
+        }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "tellraw",
+      "children": [
+        {
+          "kind": "Argument",
+          "parser": "minecraft:entity",
+          "children": {
+            "kind": "Argument",
+            "parser": "minecraft:component"
+          }
+        }
+      ]
+    }
+  ]
+}

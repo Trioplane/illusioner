@@ -1,0 +1,39 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "scoreboard",
+      "children": [
+        {
+          "kind": "Literal",
+          "name": "players",
+          "children": [
+            {
+              "kind": "Literal",
+              "name": "add",
+              "children": [
+                {
+                  "kind": "Argument",
+                  "parser": "minecraft:score_holder",
+                  "children": [
+                    {
+                      "kind": "Argument",
+                      "parser": "minecraft:objective",
+                      "children": [
+                        {
+                          "kind": "Argument",
+                          "parser": "brigadier:integer"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

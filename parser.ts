@@ -20,7 +20,7 @@ export default class Parser {
 
     public produceAST(sourceCode: string): Root {
         this.tokens = tokenize(sourceCode)
-        console.log(this.tokens)
+        //console.log(this.tokens)
 
         const root: Root = {
             kind: "Root",

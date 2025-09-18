@@ -1,0 +1,9 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Macro",
+      "value": "$say $(message) this is a macro function"
+    }
+  ]
+}

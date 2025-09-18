@@ -1,0 +1,57 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        { "kind": "Argument", "parser": "minecraft:message", "value": "hi" }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "scoreboard",
+      "children": [
+        {
+          "kind": "Literal",
+          "name": "players",
+          "children": [
+            {
+              "kind": "Literal",
+              "name": "add",
+              "children": [
+                {
+                  "kind": "Argument",
+                  "parser": "minecraft:score_holder",
+                  "children": [
+                    {
+                      "kind": "Argument",
+                      "parser": "minecraft:objective",
+                      "children": [
+                        {
+                          "kind": "Argument",
+                          "parser": "brigadier:integer"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Macro",
+      "value": "$say $(message) this is a macro function"
+    },
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        { "kind": "Argument", "parser": "minecraft:message", "value": "hello world i am multiline" }
+      ]
+    }
+  ]
+}

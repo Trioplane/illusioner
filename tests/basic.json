@@ -1,0 +1,12 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        { "kind": "Argument", "parser": "minecraft:message", "value": "hi" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        {
+          "kind": "Argument",
+          "parser": "minecraft:message",
+          "value": "this is a multiline command"
+        }
+      ]
+    },
+    {
+      "kind": "Macro",
+      "value": "$say this is a multiline $(macro)"
+    }
+  ]
+}

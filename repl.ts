@@ -13,7 +13,7 @@ async function tryParse(parser: Parser, source: string) {
 }
 
 async function repl() {
-    const commandTreeFilePath = "./commands.json"
+    const commandTreeFilePath = "./trees/commands.json"
     const commandTreeString = new TextDecoder().decode(await Deno.readFile(commandTreeFilePath))
     const commandTree = JSON.parse(commandTreeString)
     
