@@ -1,11 +1,4 @@
-/*
-    execute as @a run \
-        say hi
-    
-    $say $(message)
-
-    [NodeToken, NodeToken, NodeToken, NodeToken, NewlineToken, NodeToken, NodeToken, MacroToken]
-*/
+// deno-lint-ignore-file ban-ts-comment
 
 export enum TokenType {
     Node,
@@ -19,7 +12,7 @@ export interface Token {
 }
 
 function isSkippable(str: string): boolean {
-    return /[ \n\t\r]/.test(str)
+    return /[ \r\n\t]/.test(str)
 }
 
 function token(value = "", type: TokenType) {
@@ -34,18 +27,40 @@ export function tokenize(sourceCode: string): Token[] {
         if (src[0] === "\\") {
             src.shift()
         } else {
-            // Node token
             if (src[0] === "$") {
+                // Macro token
                 let macro = ""
 
-                // deno-lint-ignore ban-ts-comment
-                // @ts-ignore
+                // @ts-ignore 
                 // TS is too dumb to see that src[0] changed after it got shifted.
                 while (src.length > 0 && src[0] !== "\n") {
-                    macro += src.shift()
+                    // @ts-ignore
+                    if (src[0] === "\\") { // allow multiline
+                        src.shift()
+                        while (isSkippable(src[0])) src.shift()
+
+                    // @ts-ignore
+                    // PESKY CRLF LINE ENDINGS GRR
+                    } else if (src[0] === "\r") src.shift()
+                    else macro += src.shift()
                 }
                 tokens.push(token(macro, TokenType.Macro))
+            } else if (src[0] === "#") {
+                // Remove comments
+                // @ts-ignore
+                while (src.length > 0 && src[0] !== "\n") {
+                    // @ts-ignore
+                    if (src[0] === "\\") { // allow multiline
+                        src.shift()
+                        while (isSkippable(src[0])) src.shift()
+
+                    // @ts-ignore
+                    // PESKY CRLF LINE ENDINGS GRR
+                    } else if (src[0] === "\r") src.shift()
+                    else src.shift()
+                }
             } else if (!isSkippable(src[0])) {
+                // Node token
                 let node = ""
                 while (src.length > 0 && !isSkippable(src[0])) {
                     node += src.shift()

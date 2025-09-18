@@ -1,3 +1,4 @@
+// deno-lint-ignore-file ban-ts-comment
 import { Statement, Root, Literal, Argument, Macro } from "./ast.ts";
 import { tokenize, Token, TokenType } from "./lexer.ts";
 
@@ -18,7 +19,7 @@ export default class Parser {
 
     public produceAST(sourceCode: string): Root {
         this.tokens = tokenize(sourceCode)
-        //console.log(this.tokens)
+        console.log(this.tokens)
 
         const root: Root = {
             kind: "Root",
@@ -101,13 +102,12 @@ export default class Parser {
         const tree: Argument = {kind: "Argument"} as Argument
         if (parser === "minecraft:message") {
             let message = this.tokens[0].type !== TokenType.EOF ? `${argument.value} ` : argument.value;
-            while (this.tokens[0].type !== TokenType.EOF) {
+            while (this.tokens[0].type !== TokenType.EOF && this.tokens[0].type === TokenType.Node) {
                 message += this.eat().value
 
-                // deno-lint-ignore ban-ts-comment
                 // @ts-ignore
                 // TS is too dumb to see that this.tokens[0] changed after it got eaten.
-                if (this.tokens[0].type !== TokenType.EOF) message += " "
+                if (this.tokens[0].type === TokenType.Node) message += " "
             }
 
             tree.value = message
