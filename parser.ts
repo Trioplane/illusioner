@@ -1,4 +1,5 @@
-import { Statement, Root, Literal, Argument } from "./ast.ts";
+import { Statement, Root, Literal, Argument, Macro, NewlineSymbol } from "./ast.ts";
+import { tokenize, Token, TokenType } from "./lexer.ts";
 
 interface CommandTree {
     type: string,
@@ -8,100 +9,107 @@ interface CommandTree {
 }
 
 export default class Parser {
-    private src: string[] = [];
+    private tokens: Token[] = [];
     private commandTree: CommandTree = {} as CommandTree;
 
     constructor(commandTree: CommandTree) {
         this.commandTree = commandTree
     }
 
-    private eat() {
-        return this.src.shift()
-    }
-
-    private isAlpha(char: string): boolean {
-        return typeof char === "string" && /[a-zA-Z]/.test(char)
-    } 
-
     public produceAST(sourceCode: string): Root {
-        this.src = sourceCode.split("")
+        this.tokens = tokenize(sourceCode)
+        console.log(this.tokens)
 
         const root: Root = {
             kind: "Root",
             body: []
         }
 
-        while (this.src.length > 0) {
+        while (this.tokens[0].type !== TokenType.EOF) {
             root.body.push(this.parse_statement())
         }
 
         return root
     }
 
-    private parse_statement(): Statement {
-        const possibleChildren = this.commandTree.children
-
-        const possibleNextLiterals: string[] = [];
-        let possibleNextArgument: CommandTree = {} as CommandTree;
-
-        let nextToken: string = ""
-        while (this.isAlpha(this.src[0])) {
-            nextToken += this.eat()
-        }
-        this.eat() // eat space
-
-        for (const child in possibleChildren) {
-            const childTree = possibleChildren[child]
-            if (childTree.type === "literal") possibleNextLiterals.push(child)
-            if (childTree.type === "argument") possibleNextArgument = childTree
-        }
-
-        if (possibleNextLiterals.includes(nextToken)) {
-            return this.parse_literal(nextToken, possibleChildren[nextToken].children)
-        } else if (possibleNextArgument !== undefined) {
-            return this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children)
-        } else throw new SyntaxError(`Unexpected token: ${nextToken}`)
+    private eat() {
+        return this.tokens.shift() as Token
     }
 
-    private parse_literal(literal: string, possibleChildren?: Record<string, CommandTree>): Literal {
-        const tree: Literal = {kind: "Literal", name: literal}
-        if (possibleChildren === undefined) {
-            return tree
-        } else {
+    private error(message: string, expects?: string[]) {
+        console.error(message)
+        if (expects) {
+            const cutNumber = Math.min(expects.length, 9)
+            const expectsToShow = expects.slice(0, cutNumber)
+            const entriesRemaining = expects.length - (cutNumber + 1)
+            let expectsMessage = `Expected ${expectsToShow.join(", ")}`
+            if (entriesRemaining === 1) {
+                expectsMessage += `, ..., and ${entriesRemaining} more entry.`
+            } else if (entriesRemaining > 1) {
+                expectsMessage += `, ..., and ${entriesRemaining} more entries.`
+            }
+            console.error(expectsMessage)
+        }
+    }
+
+    private parse_statement(): Statement {
+        const token = this.tokens[0]
+        switch (token.type) {
+            case TokenType.Node: {
+                const rootLiterals = this.commandTree.children // The actual command names
+                const possibleNextLiterals = Object.keys(this.commandTree.children)
+
+                if (possibleNextLiterals.includes(token.value)) {
+                    return this.parse_literal(token, rootLiterals[token.value].children)
+                } else throw this.error(`Unexpected token: ${token.value}`, possibleNextLiterals)
+            }   
+            case TokenType.Macro:
+                return { kind: "Macro", value: this.eat().value } as Macro
+            case TokenType.NewlineSymbol: 
+                return { kind: "NewlineSymbol", value: this.eat().value } as NewlineSymbol
+            default:
+                throw new SyntaxError("PANIC! PANIC! WHAT THE HECK IS THIS TOKEN!!! (parse statement switch hit default)")
+        }
+    }
+
+    private parse_literal(literal: Token, possibleChildren?: Record<string, CommandTree>): Literal {
+        const tree: Literal = {kind: "Literal", name: literal.value}
+
+        if (possibleChildren) {
+            const possibleNextLiterals: string[] = [];
+            let possibleNextArgument: CommandTree = {} as CommandTree;
             tree.children = [];
+
+            for (const child in possibleChildren) {
+                const childTree = possibleChildren[child]
+                if (childTree.type === "literal") possibleNextLiterals.push(child)
+                if (childTree.type === "argument") possibleNextArgument = childTree
+            }
+
+            const nextToken = this.eat()
+
+            if (possibleNextLiterals.includes(nextToken.value)) {
+                tree.children.push(this.parse_literal(nextToken, possibleChildren[nextToken.value].children))
+            } else if (possibleNextArgument) {
+                tree.children.push(this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children))
+            } else throw this.error(`Unexpected token: ${nextToken.value}`, possibleNextLiterals)
         }
-
-        const possibleNextLiterals: string[] = [];
-        let possibleNextArgument: CommandTree = {} as CommandTree;
-
-        for (const child in possibleChildren) {
-            const childTree = possibleChildren[child]
-            if (childTree.type === "literal") possibleNextLiterals.push(child)
-            if (childTree.type === "argument") possibleNextArgument = childTree
-        }
-
-        let nextToken: string = ""
-        while (this.isAlpha(this.src[0])) {
-            nextToken += this.eat()
-        }
-        this.eat() // eat space
-
-        if (possibleNextLiterals.includes(nextToken)) {
-            tree.children.push(this.parse_literal(nextToken, possibleChildren[nextToken].children))
-        } else if (possibleNextArgument !== undefined) {
-            tree.children.push(this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children))
-        } else throw new SyntaxError(`Unexpected token: ${nextToken}`)
 
         return tree
     }
 
-    private parse_argument(argument: string, parser?: string, possibleChildren?: Record<string, CommandTree>): Argument {
+    private parse_argument(argument: Token, parser?: string, possibleChildren?: Record<string, CommandTree>): Argument {
         // this is the complicated part
         const tree: Argument = {kind: "Argument"} as Argument
         if (parser === "minecraft:message") {
-            let message = argument + " ";
-            while (this.src.length > 0) {
-                message += this.eat()
+            let message = this.tokens[0].type !== TokenType.EOF ? `${argument.value} ` : argument.value;
+            while (this.tokens[0].type !== TokenType.EOF) {
+                message += this.eat().value
+
+                // deno-lint-ignore ban-ts-comment
+                // @ts-ignore
+                // TS is too dumb to see that this.tokens[0] changed after it got eaten.
+                if (this.tokens[0].type !== TokenType.EOF) message += " "
             }
 
             tree.value = message
