@@ -1,4 +1,4 @@
-import { Statement, Root, Literal, Argument, Macro, NewlineSymbol } from "./ast.ts";
+import { Statement, Root, Literal, Argument, Macro } from "./ast.ts";
 import { tokenize, Token, TokenType } from "./lexer.ts";
 
 interface CommandTree {
@@ -18,7 +18,7 @@ export default class Parser {
 
     public produceAST(sourceCode: string): Root {
         this.tokens = tokenize(sourceCode)
-        console.log(this.tokens)
+        //console.log(this.tokens)
 
         const root: Root = {
             kind: "Root",
@@ -53,7 +53,7 @@ export default class Parser {
     }
 
     private parse_statement(): Statement {
-        const token = this.tokens[0]
+        const token = this.eat()
         switch (token.type) {
             case TokenType.Node: {
                 const rootLiterals = this.commandTree.children // The actual command names
@@ -64,9 +64,7 @@ export default class Parser {
                 } else throw this.error(`Unexpected token: ${token.value}`, possibleNextLiterals)
             }   
             case TokenType.Macro:
-                return { kind: "Macro", value: this.eat().value } as Macro
-            case TokenType.NewlineSymbol: 
-                return { kind: "NewlineSymbol", value: this.eat().value } as NewlineSymbol
+                return { kind: "Macro", value: token.value } as Macro
             default:
                 throw new SyntaxError("PANIC! PANIC! WHAT THE HECK IS THIS TOKEN!!! (parse statement switch hit default)")
         }

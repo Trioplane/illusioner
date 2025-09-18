@@ -30,8 +30,3 @@ export interface Macro extends Statement {
     kind: "Macro",
     value: string,
 }
-
-export interface NewlineSymbol extends Statement {
-    kind: "NewlineSymbol",
-    value: "\\",
-}

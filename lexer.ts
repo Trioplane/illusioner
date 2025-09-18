@@ -10,7 +10,6 @@
 export enum TokenType {
     Node,
     Macro,
-    NewlineSymbol,
     EOF
 }
 
@@ -33,7 +32,7 @@ export function tokenize(sourceCode: string): Token[] {
     
     while (src.length > 0) {
         if (src[0] === "\\") {
-            tokens.push(token(src.shift(), TokenType.NewlineSymbol))
+            src.shift()
         } else {
             // Node token
             if (src[0] === "$") {
