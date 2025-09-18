@@ -5,7 +5,7 @@ repl();
 async function tryParse(parser: Parser, source: string) {
     try {
         const ast = parser.produceAST(source)
-        await Deno.writeFile("./result.json", new TextEncoder().encode(JSON.stringify(ast, null, 2)))
+        await Deno.writeFile("./debug/result.json", new TextEncoder().encode(JSON.stringify(ast, null, 2)))
         console.log(ast)
     } catch (error) {
         console.error(error)
@@ -36,6 +36,7 @@ async function repl() {
             const rawFile = await Deno.readFile(filePath)
             const fileString = textDecoder.decode(rawFile)
             await tryParse(parser, fileString)
+            continue
         }
         if (input === "exit") {
             Deno.exit(1)
