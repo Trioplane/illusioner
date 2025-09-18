@@ -78,33 +78,16 @@ export default class Parser {
 
         if (possibleChildren) {
             const possibleNextLiterals: string[] = [];
-            const redirectNextLiterals: string[] = [];
             let possibleNextArgument: CommandTree | null = null;
-            let redirectNextArgument: CommandTree | null = null;
             tree.children = [];
-
-            const nextToken = this.eat()
 
             for (const child in possibleChildren) {
                 const childTree = possibleChildren[child]
                 if (childTree.type === "literal") possibleNextLiterals.push(child)
                 if (childTree.type === "argument") possibleNextArgument = childTree
-                if (childTree.redirect) {
-                    for (const redirect of childTree.redirect) {
-                        for (const redirectChild in this.commandTree.children[redirect].children) {
-                            const redirectChildTree = this.commandTree.children[redirect].children[redirectChild]
-                            if (redirectChildTree.type === "literal") redirectNextLiterals.push(redirectChild)
-                            if (redirectChildTree.type === "argument") redirectNextArgument = redirectChildTree
-                        }
-                    }
-                }
             }
 
-            console.log(literal, "literal")
-            console.log(nextToken, "literal")
-            console.log(possibleNextLiterals, "what")
-            console.log(redirectNextLiterals, "the")
-
+            const nextToken = this.eat()
             // Error if command ends too early
             if (nextToken.type === TokenType.EOF && (possibleNextLiterals.length > 0 || possibleNextArgument)) {
                 throw possibleNextArgument && possibleNextArgument.parser 
@@ -114,17 +97,9 @@ export default class Parser {
 
             // Try literals first before considering argument
             if (possibleNextLiterals.includes(nextToken.value)) {
-                console.log("1")
                 tree.children.push(this.parse_literal(nextToken, possibleChildren[nextToken.value].children))
-            } else if (redirectNextLiterals.includes(nextToken.value)) {
-                console.log("2")
-                tree.children.push(this.parse_literal(nextToken, this.commandTree.children[nextToken.value].children))
             } else if (possibleNextArgument && possibleNextArgument.parser) {
-                console.log("3")
                 tree.children.push(this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children))
-            } else if (redirectNextArgument && redirectNextArgument.parser) {
-                console.log("4")
-                tree.children.push(this.parse_argument(nextToken, redirectNextArgument.parser, redirectNextArgument.children))
             } else throw this.error(`Unexpected token: ${nextToken.value}`, possibleNextLiterals)
         }
 
@@ -313,32 +288,16 @@ export default class Parser {
 
         if (possibleChildren) {
             const possibleNextLiterals: string[] = [];
-            const redirectNextLiterals: string[] = [];
             let possibleNextArgument: CommandTree | null = null;
-            let redirectNextArgument: CommandTree | null = null;
             tree.children = [];
-
-            const nextToken = this.eat()
 
             for (const child in possibleChildren) {
                 const childTree = possibleChildren[child]
                 if (childTree.type === "literal") possibleNextLiterals.push(child)
                 if (childTree.type === "argument") possibleNextArgument = childTree
-                if (childTree.redirect) {
-                    for (const redirect of childTree.redirect) {
-                        for (const redirectChild in this.commandTree.children[redirect].children) {
-                            const redirectChildTree = this.commandTree.children[redirect].children[redirectChild]
-                            if (redirectChildTree.type === "literal") redirectNextLiterals.push(redirectChild)
-                            if (redirectChildTree.type === "argument") redirectNextArgument = redirectChildTree
-                        }
-                    }
-                }
             }
 
-            console.log(argument, "args")
-            console.log(possibleNextLiterals, "fuck")
-            console.log(redirectNextLiterals, "aaa")
-
+            const nextToken = this.eat()
             // Error if command ends too early
             if (nextToken.type === TokenType.EOF && (possibleNextLiterals.length > 0 || possibleNextArgument)) {
                 throw possibleNextArgument && possibleNextArgument.parser 
@@ -348,17 +307,9 @@ export default class Parser {
 
             // Try literals first before considering argument
             if (possibleNextLiterals.includes(nextToken.value)) {
-                console.log("a1")
                 tree.children.push(this.parse_literal(nextToken, possibleChildren[nextToken.value].children))
-            } else if (redirectNextLiterals.includes(nextToken.value)) {
-                console.log("a2")
-                tree.children.push(this.parse_literal(nextToken, this.commandTree.children[nextToken.value].children))
             } else if (possibleNextArgument && possibleNextArgument.parser) {
-                console.log("a3")
                 tree.children.push(this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children))
-            } else if (redirectNextArgument && redirectNextArgument.parser) {
-                console.log("a4")
-                tree.children.push(this.parse_argument(nextToken, redirectNextArgument.parser, redirectNextArgument.children))
             } else throw this.error(`Unexpected token: ${nextToken.value}`, possibleNextLiterals)
         }
 
