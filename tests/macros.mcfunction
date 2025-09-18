@@ -1,0 +1,1 @@
+$say $(message) this is a macro function

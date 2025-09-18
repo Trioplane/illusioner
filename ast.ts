@@ -5,6 +5,62 @@ export type NodeType =
     | "Macro"
     | "NewlineSymbol"
 
+export type NodeParsers = 
+    | "minecraft:entity"
+    | "minecraft:resource_key"
+    | "brigadier:string"
+    | "minecraft:resource"
+    | "brigadier:double"
+    | "minecraft:resource_location"
+    | "minecraft:game_profile"
+    | "minecraft:message"
+    | "minecraft:component"
+    | "brigadier:integer"
+    | "brigadier:bool"
+    | "minecraft:item_predicate"
+    | "minecraft:block_pos"
+    | "minecraft:block_predicate"
+    | "minecraft:dimension"
+    | "brigadier:float"
+    | "minecraft:vec3"
+    | "minecraft:nbt_path"
+    | "minecraft:nbt_compound_tag"
+    | "minecraft:nbt_tag"
+    | "minecraft:function"
+    | "minecraft:gamemode"
+    | "minecraft:dialog"
+    | "minecraft:swizzle"
+    | "minecraft:entity_anchor"
+    | "minecraft:resource_or_tag"
+    | "minecraft:item_slots"
+    | "minecraft:loot_predicate"
+    | "minecraft:score_holder"
+    | "minecraft:objective"
+    | "minecraft:int_range"
+    | "minecraft:heightmap"
+    | "minecraft:rotation"
+    | "minecraft:uuid"
+    | "minecraft:block_state"
+    | "minecraft:column_pos"
+    | "minecraft:item_stack"
+    | "minecraft:item_slot"
+    | "minecraft:loot_modifier"
+    | "minecraft:resource_or_tag_key"
+    | "minecraft:loot_table"
+    | "minecraft:particle"
+    | "minecraft:template_rotation"
+    | "minecraft:template_mirror"
+    | "minecraft:time"
+    | "minecraft:objective_criteria"
+    | "minecraft:style"
+    | "minecraft:scoreboard_slot"
+    | "minecraft:operation"
+    | "minecraft:vec2"
+    | "minecraft:team"
+    | "minecraft:color"
+    | "minecraft:resource_selector"
+    | "minecraft:hex_color"
+
 export interface Statement {
     kind: NodeType
 }
@@ -23,6 +79,7 @@ export interface Literal extends Statement {
 export interface Argument extends Statement {
     kind: "Argument",
     value: string,
+    parser: NodeParsers
     children?: Statement[]
 }
 
