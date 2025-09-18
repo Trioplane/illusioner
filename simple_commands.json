@@ -1,0 +1,30 @@
+{
+    "type": "root",
+    "children": {
+        "say": {
+          "type": "literal",
+          "children": {
+            "message": {
+              "type": "argument",
+              "executable": true,
+              "parser": "minecraft:message"
+            }
+          },
+          "required_level": 2
+        },
+        "example": {
+            "type": "literal",
+            "children": {
+                "optiona": {
+                    "type": "literal"
+                },
+                "optionb": {
+                    "type": "literal"
+                },
+                "optionc": {
+                    "type": "literal"
+                }
+            }
+        }
+    }
+}

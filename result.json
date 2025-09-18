@@ -1,0 +1,15 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        {
+          "kind": "Argument",
+          "value": "lets goooooo"
+        }
+      ]
+    }
+  ]
+}
