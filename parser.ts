@@ -39,7 +39,7 @@ export default class Parser {
     }
 
     private error(message: string, expects?: string[]) {
-        console.error(message)
+        console.error("\x1b[0;31m" + message + "\x1b[0m")
         if (expects) {
             const cutNumber = Math.min(expects.length, 9)
             const expectsToShow = expects.slice(0, cutNumber)
@@ -50,7 +50,7 @@ export default class Parser {
             } else if (entriesRemaining > 1) {
                 expectsMessage += `, ..., and ${entriesRemaining} more entries.`
             }
-            console.error(expectsMessage)
+            console.error("\x1b[0;91m" + expectsMessage + "\x1b[0m")
         }
     }
 

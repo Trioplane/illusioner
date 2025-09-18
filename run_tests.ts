@@ -114,21 +114,21 @@ for (let i = 0; i < testFiles.length; i++) {
 
     if (error !== null) {
         failed++
-        console.log(`🔴 ${indexStr} ${loadingBar} "${MCFunctionFilePath}" failed (error)`)
+        console.log(`\x1b[0;91m🔴 ${indexStr} ${loadingBar} "${MCFunctionFilePath}" failed (error)\x1b[0m`)
         continue
     }
 
     if (result) {
         const resultAst = JSON.stringify(result, null, 2)
         if (resultAst !== correctAst) {
-            console.log(`🔴 ${indexStr} ${loadingBar} "${MCFunctionFilePath}" failed (ast mismatch)\n`)
+            console.log(`\x1b[0;91m🔴 ${indexStr} ${loadingBar} "${MCFunctionFilePath}" failed (ast mismatch)\x1b[0m\n`)
             console.log(formatDiff(resultAst,correctAst,"Result AST", "Correct AST"))
             continue
         }
     }
 
     passed++
-    console.log(`✅ ${indexStr} ${loadingBar} "${MCFunctionFilePath}" passed`)
+    console.log(`\x1b[0;92m✅ ${indexStr} ${loadingBar} "${MCFunctionFilePath}" passed\x1b[0m`)
 }
 
-console.log(`\n${passed}/${testFiles.length} tests passed. A total of ${failed} tests failed.`)
+console.log(`\n\x1b[42m${passed}/${testFiles.length}\x1b[0m\x1b[1;92m tests passed.\x1b[0;91m A total of \x1b[0;101m${failed}\x1b[0;91m tests failed.\x1b[0m`)
