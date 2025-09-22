@@ -4,18 +4,83 @@ import { tokenize, Token, TokenType } from "./lexer.ts";
 
 interface CommandTree {
     type: string,
-    children: Record<string, CommandTree>,
+    children: CommandTreeChildren,
     executable?: boolean,
     parser?: NodeParsers,
-    redirect?: string[]
+    redirect?: string[],
+    name?: string // this doesn't exist in the real command tree, just makes life easier
 }
+
+type CommandTreeChildren = Record<string, CommandTree>
 
 export default class Parser {
     private tokens: Token[] = [];
     private commandTree: CommandTree = {} as CommandTree;
+    private rootLiterals: CommandTreeChildren = {} as CommandTreeChildren;
 
     constructor(commandTree: CommandTree) {
         this.commandTree = commandTree
+        this.rootLiterals = this.commandTree.children
+    }
+
+    /**
+     * This should only be used when done checking all the necessary stuff to finally consume the token.
+     * 
+     * If not, a variable to `this.token[0]` should be used.
+     */
+    private eat() {
+        return this.tokens.shift() as Token
+    }
+
+    private error(message: string, expects?: string[]) {
+        console.error("\x1b[0;31m" + message + "\x1b[0m")
+        console.error(this.tokens[0])
+        if (expects) {
+            const cutNumber = Math.min(expects.length, 9)
+            const expectsToShow = expects.slice(0, cutNumber)
+            const entriesRemaining = expects.length - (cutNumber + 1)
+            let expectsMessage = `Expected ${expectsToShow.join(", ")}`
+            if (entriesRemaining === 1) {
+                expectsMessage += `, ..., and ${entriesRemaining} more entry.`
+            } else if (entriesRemaining > 1) {
+                expectsMessage += `, ..., and ${entriesRemaining} more entries.`
+            }
+            console.error("\x1b[0;91m" + expectsMessage + "\x1b[0m")
+        }
+    }
+
+    private getNext(children: CommandTreeChildren) {
+        const nextLiterals: string[] = []
+        let nextArgument: CommandTree | null = null;
+        const nextRedirectLiterals: Record<string, string[]> = {}
+        const nextRedirectArguments: Record<string, CommandTree | null> | null = {};
+        
+        for (const child in children) {
+            const childTree = children[child]
+
+            if (childTree.type === "literal") { nextLiterals.push(child) }
+            if (childTree.type === "argument") nextArgument = { ...childTree, name: child }
+
+            // Check for redirects and resolve their children
+
+            // let childTree.redirect = [ "execute", "tp" ]
+            if (childTree.redirect) {
+                for (const redirect of childTree.redirect) {
+                    // redirect = "execute" | "tp"
+                    const redirectChildren = this.rootLiterals[redirect].children
+                    nextRedirectLiterals[redirect] = []
+
+                    for (const rChild in redirectChildren) {
+                        const rChildTree = redirectChildren[rChild]
+
+                        if (rChildTree.type === "literal") { nextRedirectLiterals[redirect].push(rChild) }
+                        if (rChildTree.type === "argument") { nextRedirectArguments[redirect] = { ...rChildTree, name: rChild } }
+                    }
+                }
+            }
+        }
+
+        return { nextLiterals, nextArgument, nextRedirectLiterals, nextRedirectArguments }
     }
 
     public produceAST(sourceCode: string): Root {
@@ -34,82 +99,98 @@ export default class Parser {
         return root
     }
 
-    private eat() {
-        return this.tokens.shift() as Token
-    }
-
-    private error(message: string, expects?: string[]) {
-        console.error("\x1b[0;31m" + message + "\x1b[0m")
-        if (expects) {
-            const cutNumber = Math.min(expects.length, 9)
-            const expectsToShow = expects.slice(0, cutNumber)
-            const entriesRemaining = expects.length - (cutNumber + 1)
-            let expectsMessage = `Expected ${expectsToShow.join(", ")}`
-            if (entriesRemaining === 1) {
-                expectsMessage += `, ..., and ${entriesRemaining} more entry.`
-            } else if (entriesRemaining > 1) {
-                expectsMessage += `, ..., and ${entriesRemaining} more entries.`
-            }
-            console.error("\x1b[0;91m" + expectsMessage + "\x1b[0m")
-        }
-    }
-
     private parse_statement(): Statement {
-        const token = this.eat()
+        const token = this.tokens[0]
+
         switch (token.type) {
             case TokenType.Node: {
-                const rootLiterals = this.commandTree.children // The actual command names
-                const possibleNextLiterals = Object.keys(this.commandTree.children)
+                // Only literals are expected in first children 'cause command names.
+                const { nextLiterals } = this.getNext(this.rootLiterals)
 
-                if (possibleNextLiterals.includes(token.value)) {
-                    return this.parse_literal(token, rootLiterals[token.value].children)
-                } else throw this.error(`Unexpected token: ${token.value}`, possibleNextLiterals)
+                if (nextLiterals.includes(token.value)) {
+                    return this.parse_literal(this.eat(), this.rootLiterals)
+                } else throw this.error(`Unexpected token: ${token.value}`, nextLiterals)
             }   
             case TokenType.Macro:
-                return { kind: "Macro", value: token.value } as Macro
+                return { kind: "Macro", value: this.eat().value } as Macro
             default:
                 console.log(token)
                 throw new SyntaxError("PANIC! PANIC! WHAT THE HECK IS THIS TOKEN!!! (parse statement switch hit default)")
         }
     }
 
-    private parse_literal(literal: Token, possibleChildren?: Record<string, CommandTree>): Literal {
+    private parse_literal(literal: Token, nextChildren?: CommandTreeChildren): Literal {
         const tree: Literal = {kind: "Literal", name: literal.value}
 
-        if (possibleChildren) {
-            const possibleNextLiterals: string[] = [];
-            let possibleNextArgument: CommandTree | null = null;
-            tree.children = [];
+        const nextToken = this.tokens[0]
 
-            for (const child in possibleChildren) {
-                const childTree = possibleChildren[child]
-                if (childTree.type === "literal") possibleNextLiterals.push(child)
-                if (childTree.type === "argument") possibleNextArgument = childTree
-            }
+        if (nextChildren) {
+            const { 
+                nextArgument, 
+                nextLiterals,
+            } = this.getNext(nextChildren[literal.value].children)
 
-            const nextToken = this.eat()
+            const { 
+                nextRedirectArguments,
+                nextRedirectLiterals                
+            } = this.getNext(nextChildren)
+
+            tree.children = []
+
             // Error if command ends too early
-            if (nextToken.type === TokenType.EOF && (possibleNextLiterals.length > 0 || possibleNextArgument)) {
-                throw possibleNextArgument && possibleNextArgument.parser 
-                    ? this.error("Unexpected end of file", [possibleNextArgument?.parser, ...possibleNextLiterals]) 
-                    : this.error("Unexpected end of file", possibleNextLiterals)
+            if (
+                nextToken.type === TokenType.EOF 
+                && (nextLiterals.length > 0 || Object.keys(nextRedirectLiterals).length > 0 || nextArgument || Object.keys(nextRedirectArguments).length > 0) // cursed if statement
+            ) {
+                throw nextArgument && nextArgument.parser
+                    ? this.error("Unexpected end of file", [nextArgument?.parser, ...nextLiterals])
+                    : this.error("Unexpected end of file", nextLiterals)
             }
 
-            // Try literals first before considering argument
-            if (possibleNextLiterals.includes(nextToken.value)) {
-                tree.children.push(this.parse_literal(nextToken, possibleChildren[nextToken.value].children))
-            } else if (possibleNextArgument && possibleNextArgument.parser) {
-                tree.children.push(this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children))
-            } else throw this.error(`Unexpected token: ${nextToken.value}`, possibleNextLiterals)
+            console.log("PARSE LITERAL", nextToken)
+
+            const redirects = nextChildren[literal.value]?.redirect
+
+            // Try literals first before considering argument & redirects
+            if (nextLiterals.includes(nextToken.value)) {
+                console.log("literal block")
+                tree.children.push(this.parse_literal(this.eat(), nextChildren[nextToken.value].children))
+            } 
+            else if (nextArgument && nextArgument.parser) {
+                console.log("argument block")
+                tree.children.push(this.parse_argument(this.eat(), nextArgument.parser, nextArgument.children, nextArgument.name))
+            } 
+            else if (redirects) {
+                console.log("redirect block")
+                for (const redirect of redirects) {
+                    if (nextRedirectLiterals[redirect] && nextRedirectLiterals[redirect].includes(nextToken.value)) {
+                        console.log("redirect literal block")
+                        tree.children.push(this.parse_literal(this.eat(), this.rootLiterals[redirect].children))
+                        break
+                    } else if (nextRedirectArguments[redirect] && nextRedirectArguments[redirect].parser) {
+                        console.log("redirect argument block")
+                        tree.children.push(this.parse_argument(this.eat(), nextRedirectArguments[redirect].parser, this.rootLiterals[redirect].children, nextRedirectArguments[redirect].name))
+                        break
+                    }
+                }
+
+                // If nothing passed, we die
+                throw this.error("Unexpected token, has redirect")
+            } 
+            else throw nextArgument && nextArgument.parser
+                    ? this.error("Unexpected token", [nextArgument?.parser, ...nextLiterals])
+                    : this.error("Unexpected token", nextLiterals)
         }
 
         return tree
     }
 
-    private parse_argument(argument: Token, parser: NodeParsers, possibleChildren?: Record<string, CommandTree>): Argument {
+    private parse_argument(argument: Token, parser: NodeParsers, nextChildren?: CommandTreeChildren, name?: string): Argument {
         // this is the complicated part
         // Parsers translated from MC & Brigadier source code.
         const tree: Argument = { kind: "Argument", parser } as Argument
+
+        if (!name) throw new SyntaxError("PANIC PANIC!!! THE ARGUMENT DOESNT HAVE A NAME!!!") 
 
         switch (parser) {
             case "minecraft:entity": {
@@ -286,31 +367,64 @@ export default class Parser {
             }
         }
 
-        if (possibleChildren) {
-            const possibleNextLiterals: string[] = [];
-            let possibleNextArgument: CommandTree | null = null;
-            tree.children = [];
+        const nextToken = this.tokens[0]
 
-            for (const child in possibleChildren) {
-                const childTree = possibleChildren[child]
-                if (childTree.type === "literal") possibleNextLiterals.push(child)
-                if (childTree.type === "argument") possibleNextArgument = childTree
-            }
+        if (nextChildren) {
+            const { 
+                nextArgument, 
+                nextLiterals,
+            } = this.getNext(nextChildren[name].children)
 
-            const nextToken = this.eat()
+            const { 
+                nextRedirectArguments,
+                nextRedirectLiterals                
+            } = this.getNext(nextChildren)
+
+            tree.children = []
+
             // Error if command ends too early
-            if (nextToken.type === TokenType.EOF && (possibleNextLiterals.length > 0 || possibleNextArgument)) {
-                throw possibleNextArgument && possibleNextArgument.parser 
-                    ? this.error("Unexpected end of file", [possibleNextArgument?.parser, ...possibleNextLiterals]) 
-                    : this.error("Unexpected end of file", possibleNextLiterals)
+            if (
+                nextToken.type === TokenType.EOF 
+                && (nextLiterals.length > 0 || Object.keys(nextRedirectLiterals).length > 0 || nextArgument || Object.keys(nextRedirectArguments).length > 0) // cursed if statement
+            ) {
+                throw nextArgument && nextArgument.parser
+                    ? this.error("Unexpected end of file", [nextArgument?.parser, ...nextLiterals])
+                    : this.error("Unexpected end of file", nextLiterals)
             }
 
-            // Try literals first before considering argument
-            if (possibleNextLiterals.includes(nextToken.value)) {
-                tree.children.push(this.parse_literal(nextToken, possibleChildren[nextToken.value].children))
-            } else if (possibleNextArgument && possibleNextArgument.parser) {
-                tree.children.push(this.parse_argument(nextToken, possibleNextArgument.parser, possibleNextArgument.children))
-            } else throw this.error(`Unexpected token: ${nextToken.value}`, possibleNextLiterals)
+            console.log("PARSE ARG", nextToken)
+
+            const redirects = nextChildren[name]?.redirect
+
+            // Try literals first before considering argument & redirects
+            if (nextLiterals.includes(nextToken.value)) {
+                console.log("literal block")
+                tree.children.push(this.parse_literal(this.eat(), nextChildren[nextToken.value].children))
+            } 
+            else if (nextArgument && nextArgument.parser) {
+                console.log("argument block")
+                tree.children.push(this.parse_argument(this.eat(), nextArgument.parser, nextChildren[name].children, nextArgument.name))
+            } 
+            else if (redirects) {
+                console.log("redirect block")
+                for (const redirect of redirects) {
+                    if (nextRedirectLiterals[redirect] && nextRedirectLiterals[redirect].includes(nextToken.value)) {
+                        console.log("redirect literal block")
+                        tree.children.push(this.parse_literal(this.eat(), this.rootLiterals[redirect].children))
+                        break
+                    } else if (nextRedirectArguments[redirect] && nextRedirectArguments[redirect].parser) {
+                        console.log("redirect argument block")
+                        tree.children.push(this.parse_argument(this.eat(), nextRedirectArguments[redirect].parser, this.rootLiterals[redirect].children, nextRedirectArguments[redirect].name))
+                        break
+                    }
+                }
+
+                // If nothing passed, we die
+                throw this.error("Unexpected token, has redirect")
+            } 
+            else throw nextArgument && nextArgument.parser
+                    ? this.error("Unexpected token", [nextArgument?.parser, ...nextLiterals])
+                    : this.error("Unexpected token", nextLiterals)
         }
 
         return tree

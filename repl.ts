@@ -1,18 +1,16 @@
 import Parser from "./parser.ts";
 
 repl();
+//repl("tp @s ~ a a");
+// PROBLEMS: PASSING CHILDREN TREES IS A BIT JANKY
 
 async function tryParse(parser: Parser, source: string) {
-    try {
-        const ast = parser.produceAST(source)
-        await Deno.writeFile("./debug/result.json", new TextEncoder().encode(JSON.stringify(ast, null, 2)))
-        console.log(ast)
-    } catch (error) {
-        console.error(error)
-    }
+    const ast = parser.produceAST(source)
+    await Deno.writeFile("./debug/result.json", new TextEncoder().encode(JSON.stringify(ast, null, 2)))
+    console.log(ast)
 }
 
-async function repl() {
+async function repl(command = "") {
     const commandTreeFilePath = "./trees/commands.json"
     const commandTreeString = new TextDecoder().decode(await Deno.readFile(commandTreeFilePath))
     const commandTree = JSON.parse(commandTreeString)
@@ -20,6 +18,10 @@ async function repl() {
     const parser = new Parser(commandTree)
     const textDecoder = new TextDecoder()
     console.log(`\nMCFunction Parser Repl (using command tree from ${commandTreeFilePath})`)
+
+    if (command) {
+        await tryParse(parser, command)
+    }
 
     while (true) {
         const input = prompt("> ")
