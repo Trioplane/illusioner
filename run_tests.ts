@@ -121,6 +121,7 @@ for (let i = 0; i < testFiles.length; i++) {
     if (result) {
         const resultAst = JSON.stringify(result, null, 2)
         if (resultAst !== correctAst) {
+            failed++
             console.log(`\x1b[0;91m🔴 ${indexStr} ${loadingBar} "${MCFunctionFilePath}" failed (ast mismatch)\x1b[0m\n`)
             console.log(formatDiff(resultAst,correctAst,"Result AST", "Correct AST"))
             continue

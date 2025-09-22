@@ -1,0 +1,80 @@
+{
+  "kind": "Root",
+  "body": [
+    {
+      "kind": "Literal",
+      "name": "execute",
+      "children": [
+        {
+          "kind": "Literal",
+          "name": "as",
+          "children": [
+            {
+              "kind": "Argument",
+              "parser": "minecraft:entity"
+            }
+          ]
+        },
+        {
+          "kind": "Literal",
+          "name": "at",
+          "children": [
+            {
+              "kind": "Argument",
+              "parser": "minecraft:entity"
+            }
+          ]
+        },
+        {
+          "kind": "Literal",
+          "name": "if",
+          "children": [
+            {
+              "kind": "Literal",
+              "name": "entity",
+              "children": [
+                {
+                  "kind": "Argument",
+                  "parser": "minecraft:entity"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "Literal",
+          "name": "run"
+        }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "say",
+      "children": [
+        { "kind": "Argument", "parser": "minecraft:message", "value": "hi" }
+      ]
+    },
+    {
+      "kind": "Literal",
+      "name": "xp",
+      "children": [
+        {
+          "kind": "Literal",
+          "name": "add",
+          "children": [
+            {
+              "kind": "Argument",
+              "parser": "minecraft:entity",
+              "children": [
+                {
+                  "kind": "Argument",
+                  "parser": "brigadier:integer"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
